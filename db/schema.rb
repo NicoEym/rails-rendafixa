@@ -10,9 +10,45 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 0) do
+ActiveRecord::Schema.define(version: 2020_07_07_211925) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
+  create_table "calendars", force: :cascade do |t|
+    t.date "day"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "debenture_market_data", force: :cascade do |t|
+    t.float "rate"
+    t.float "credit_spread"
+    t.bigint "calendar_id"
+    t.bigint "debenture_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["calendar_id"], name: "index_debenture_market_data_on_calendar_id"
+    t.index ["debenture_id"], name: "index_debenture_market_data_on_debenture_id"
+  end
+
+  create_table "debentures", force: :cascade do |t|
+    t.string "code"
+    t.bigint "issuer_id"
+    t.date "issuance_date"
+    t.date "maturity_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["issuer_id"], name: "index_debentures_on_issuer_id"
+  end
+
+  create_table "issuers", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_foreign_key "debenture_market_data", "calendars"
+  add_foreign_key "debenture_market_data", "debentures"
+  add_foreign_key "debentures", "issuers"
 end
