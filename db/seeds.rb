@@ -11,11 +11,10 @@ require "open-uri"
 require "csv"
 
 Debenture.delete_all
+Issuer.delete_all
+Sector.delete_all
 
-
-
-source_file  = 'db/csv_repos/data ibovespa.csv'
-
+source_file  = 'db/csv_repos/debentures.csv'
 csv_options = { col_sep:  ";", quote_char: '"', headers: :first_row }
 
 
@@ -29,35 +28,46 @@ end
 
 CSV.foreach(source_file, csv_options) do |row|
   code = row['Codigo']
+  puts code
   issuance_date = get_date(row["Data de emissão"])
+  puts issuance_date
   maturity_date = get_date(row["Vencimento/Repactuação"])
+  puts maturity_date
+  rate_type = row['Índice de correção']
+  puts rate_type
+  indice = row['Tipo de Debênture']
+  puts indice
 
+  sector = Sector.find_by(name: row["Setor"])
+  sector = Sector.create(name: row["Setor"]) if sector.nil?
+  puts sector
 
   emissor = Issuer.find_by(name: row["Emissor"])
-  emissor = Issuer.Create(name: row["Emissor"]) if emissor.nil?
-
-  data = DataBenchmark.find_by(bench_mark_id: benchmark.id, calendar_id: date)
+  emissor = Issuer.create(name: row["Emissor"], sector: sector) if emissor.nil?
+  puts emissor
 
   debenture = Debenture.find_by(code: code)
   debenture = Debenture.create(code: code, maturity_date: maturity_date,
-                                issuance_date: issuance_date ) if debenture.nil?
+                                issuance_date: issuance_date, rate_type: rate_type,
+                                index: indice, issuer: emissor) if debenture.nil?
+  puts debenture
 end
 
 
-url = "https://www.anbima.com.br/informacoes/merc-sec-debentures/arqs/db200707.txt"
-file = open(url)
-i = 1
+# url = "https://www.anbima.com.br/informacoes/merc-sec-debentures/arqs/db200707.txt"
+# file = open(url)
+# i = 1
 
-File.open(file).each do |row|
-  encoded_row = row.force_encoding("ISO-8859-1")
-  debenture_array = encoded_row.split("@")
-  if i > 3
-    debenture = Debenture.find_by(code: debenture_array[0])
-    debenture = Debenture.create(code: debenture_array[0], maturity_date: debenture_array[2] ) if debenture.nil?
-    puts debenture
-  end
-  i += 1
-end
+# File.open(file).each do |row|
+#   encoded_row = row.force_encoding("ISO-8859-1")
+#   debenture_array = encoded_row.split("@")
+#   if i > 3
+#     debenture = Debenture.find_by(code: debenture_array[0])
+#     debenture = Debenture.create(code: debenture_array[0], maturity_date: debenture_array[2] ) if debenture.nil?
+#     puts debenture
+#   end
+#   i += 1
+# end
   # encoded_file = File.read(file).force_encoding("ISO-8859-1")
 
   # File.open(encoded_file).each do |row|
