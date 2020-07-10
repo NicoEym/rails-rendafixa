@@ -2,3 +2,93 @@
 @import "alert";
 @import "avatar";
 @import "navbar";
+@import "banner";
+@import "button";
+
+
+.container {
+  min-height:100vh;
+  border-radius: 0.5em;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  padding: 1em;
+ }
+
+@media (min-width: 1200px) {
+  .container-xl, .container-lg, .container-md, .container-sm, .container {
+      max-width: 85vw;
+  }
+}
+.container-home {
+  height:100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2em;
+  flex-direction: center;
+}
+.chart-container {
+  position: relative;
+  margin: auto;
+  height: 300px;
+  width: 80vw;
+  margin-bottom: 0.5em;
+}
+
+
+a { color: inherit;
+  text-decoration: none;
+  &:hover {
+  color: inherit;
+  text-decoration: none;
+  }
+}
+
+.space_between {
+  display: flex;
+  justify-content: space-between;
+}
+
+.space_around {
+  justify-content: space-around;
+}
+
+.width100 {
+  width: 100%;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.my-row{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.padding1 {
+  padding: 1em;
+}
+
+.margin1 {
+  margin: 1em;
+}
+
+.shadow-boxing {
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+.border-radius05 {
+  border-radius: 0.5em;
+}
+
+.marginb {
+  margin-bottom: 1em;
+}
+
+.width80 {
+  width: 80%;
+}
+
+.width35 {
+  width: 50%;
+}
