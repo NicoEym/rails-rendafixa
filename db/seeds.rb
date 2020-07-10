@@ -10,9 +10,9 @@ require "date"
 require "open-uri"
 require "csv"
 
-Debenture.delete_all
-Issuer.delete_all
-Sector.delete_all
+# Debenture.delete_all
+# Issuer.delete_all
+# Sector.delete_all
 
 source_file  = 'db/csv_repos/debentures.csv'
 csv_options = { col_sep:  ";", quote_char: '"', headers: :first_row }
@@ -26,48 +26,61 @@ def get_date(date)
   date = Date.new(year, month, day)
 end
 
-CSV.foreach(source_file, csv_options) do |row|
-  code = row['Codigo']
-  puts code
-  issuance_date = get_date(row["Data de emissão"])
-  puts issuance_date
-  maturity_date = get_date(row["Vencimento/Repactuação"])
-  puts maturity_date
-  rate_type = row['Índice de correção']
-  puts rate_type
-  indice = row['Tipo de Debênture']
-  puts indice
+if Debenture.all.count == 0
+  CSV.foreach(source_file, csv_options) do |row|
+    code = row['Codigo']
+    puts code
+    issuance_date = get_date(row["Data de emissão"])
+    puts issuance_date
+    maturity_date = get_date(row["Vencimento/Repactuação"])
+    puts maturity_date
+    rate_type = row['Índice de correção']
+    puts rate_type
+    indice = row['Tipo de Debênture']
+    puts indice
 
-  sector = Sector.find_by(name: row["Setor"])
-  sector = Sector.create(name: row["Setor"]) if sector.nil?
-  puts sector
+    sector = Sector.find_by(name: row["Setor"])
+    sector = Sector.create(name: row["Setor"]) if sector.nil?
+    puts sector
 
-  emissor = Issuer.find_by(name: row["Emissor"])
-  emissor = Issuer.create(name: row["Emissor"], sector: sector) if emissor.nil?
-  puts emissor
+    emissor = Issuer.find_by(name: row["Emissor"])
+    emissor = Issuer.create(name: row["Emissor"], sector: sector) if emissor.nil?
+    puts emissor
 
-  debenture = Debenture.find_by(code: code)
-  debenture = Debenture.create(code: code, maturity_date: maturity_date,
-                                issuance_date: issuance_date, rate_type: rate_type,
-                                index: indice, issuer: emissor) if debenture.nil?
-  puts debenture
+    debenture = Debenture.find_by(code: code)
+    debenture = Debenture.create(code: code, maturity_date: maturity_date,
+                                  issuance_date: issuance_date, rate_type: rate_type,
+                                  index: indice, issuer: emissor) if debenture.nil?
+    puts debenture
+  end
 end
 
 
-# url = "https://www.anbima.com.br/informacoes/merc-sec-debentures/arqs/db200707.txt"
-# file = open(url)
-# i = 1
+date_report = Date.today - 1
+calendar = Calendar.create(day: date_report)
+formatted_date = date_report.strftime("%y%m%d")
 
-# File.open(file).each do |row|
-#   encoded_row = row.force_encoding("ISO-8859-1")
-#   debenture_array = encoded_row.split("@")
-#   if i > 3
-#     debenture = Debenture.find_by(code: debenture_array[0])
-#     debenture = Debenture.create(code: debenture_array[0], maturity_date: debenture_array[2] ) if debenture.nil?
-#     puts debenture
-#   end
-#   i += 1
-# end
+url = "https://www.anbima.com.br/informacoes/merc-sec-debentures/arqs/db#{formatted_date}.txt"
+file = open(url)
+i = 1
+
+File.open(file).each do |row|
+  encoded_row = row.force_encoding("ISO-8859-1")
+  debenture_array = encoded_row.split("@")
+  if i > 3
+    debenture = Debenture.find_by(code: debenture_array[0])
+    debenture = Debenture.create(code: debenture_array[0], maturity_date: debenture_array[2] ) if debenture.nil?
+
+    data = DebentureMarketDatum.create(debenture: debenture, calendar: calendar, rate: debenture_array[6], price: debenture_array[10],
+                                days_to_maturity: debenture_array[12])
+    puts debenture.code
+    puts data.rate
+    puts data.price
+    puts data.days_to_maturity
+
+  end
+  i += 1
+end
   # encoded_file = File.read(file).force_encoding("ISO-8859-1")
 
   # File.open(encoded_file).each do |row|
