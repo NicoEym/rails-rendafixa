@@ -1,7 +1,9 @@
-<div class="container">
-  <ul>
-  <% @debentures.each do |debenture| %>
-    <li><%= "#{debenture.code} - #{debenture.issuer.name} - #{debenture.issuer.sector.name}"  %></li>
-  <% end %>
-  </ul>
-</div>
+
+  <div class="container">
+    <ul>
+    <% @debentures.each do |debenture| %>
+      <li><%= "#{debenture.code} - #{debenture.issuer.name} - #{debenture.issuer.sector.name}"  %></li>
+    <% end %>
+    </ul>
+  </div>
+
