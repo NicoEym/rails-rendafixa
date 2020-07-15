@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_10_160251) do
+ActiveRecord::Schema.define(version: 2020_07_15_204032) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -46,6 +46,22 @@ ActiveRecord::Schema.define(version: 2020_07_10_160251) do
     t.index ["issuer_id"], name: "index_debentures_on_issuer_id"
   end
 
+  create_table "index_market_data", force: :cascade do |t|
+    t.float "rate"
+    t.bigint "calendar_id"
+    t.bigint "index_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["calendar_id"], name: "index_index_market_data_on_calendar_id"
+    t.index ["index_id"], name: "index_index_market_data_on_index_id"
+  end
+
+  create_table "indices", force: :cascade do |t|
+    t.string "name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "issuers", force: :cascade do |t|
     t.string "name"
     t.datetime "created_at", null: false
@@ -63,5 +79,7 @@ ActiveRecord::Schema.define(version: 2020_07_10_160251) do
   add_foreign_key "debenture_market_data", "calendars"
   add_foreign_key "debenture_market_data", "debentures"
   add_foreign_key "debentures", "issuers"
+  add_foreign_key "index_market_data", "calendars"
+  add_foreign_key "index_market_data", "indices"
   add_foreign_key "issuers", "sectors"
 end
