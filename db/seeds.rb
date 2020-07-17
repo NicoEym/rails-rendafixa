@@ -9,13 +9,15 @@
 require "date"
 require "open-uri"
 require "csv"
+require 'roo-xls'
 
+DebentureMarketDatum.delete_all
 # Debenture.delete_all
 # Issuer.delete_all
 # Sector.delete_all
 
-source_file  = 'db/csv_repos/debentures.csv'
-csv_options = { col_sep:  ";", quote_char: '"', headers: :first_row }
+# source_file  = 'db/csv_repos/debentures.csv'
+# csv_options = { col_sep:  ";", quote_char: '"', headers: :first_row }
 
 
 def get_date(date)
@@ -26,42 +28,42 @@ def get_date(date)
   date = Date.new(year, month, day)
 end
 
-if Debenture.all.count == 0
-  CSV.foreach(source_file, csv_options) do |row|
-    code = row['Codigo']
-    puts code
-    issuance_date = get_date(row["Data de emissão"])
-    puts issuance_date
-    maturity_date = get_date(row["Vencimento/Repactuação"])
-    puts maturity_date
-    rate_type = row['Índice de correção']
-    puts rate_type
-    indice = row['Tipo de Debênture']
-    puts indice
+# if Debenture.all.count == 0
+#   CSV.foreach(source_file, csv_options) do |row|
+#     code = row['Codigo']
+#     puts code
+#     issuance_date = get_date(row["Data de emissão"])
+#     puts issuance_date
+#     maturity_date = get_date(row["Vencimento/Repactuação"])
+#     puts maturity_date
+#     rate_type = row['Índice de correção']
+#     puts rate_type
+#     indice = row['Tipo de Debênture']
+#     puts indice
 
-    sector = Sector.find_by(name: row["Setor"])
-    sector = Sector.create(name: row["Setor"]) if sector.nil?
-    puts sector
+#     sector = Sector.find_by(name: row["Setor"])
+#     sector = Sector.create(name: row["Setor"]) if sector.nil?
+#     puts sector
 
-    emissor = Issuer.find_by(name: row["Emissor"])
-    emissor = Issuer.create(name: row["Emissor"], sector: sector) if emissor.nil?
-    puts emissor
+#     emissor = Issuer.find_by(name: row["Emissor"])
+#     emissor = Issuer.create(name: row["Emissor"], sector: sector) if emissor.nil?
+#     puts emissor
 
-    debenture = Debenture.find_by(code: code)
-    debenture = Debenture.create(code: code, maturity_date: maturity_date,
-                                  issuance_date: issuance_date, rate_type: rate_type,
-                                  index: indice, issuer: emissor) if debenture.nil?
-    puts debenture
-  end
-end
+#     debenture = Debenture.find_by(code: code)
+#     debenture = Debenture.create(code: code, maturity_date: maturity_date,
+#                                   issuance_date: issuance_date, rate_type: rate_type,
+#                                   index: indice, issuer: emissor) if debenture.nil?
+#     puts debenture
+#   end
+# end
 
 
 date_report = Date.today - 1
 calendar = Calendar.create(day: date_report)
 formatted_date = date_report.strftime("%y%m%d")
 
-url = "https://www.anbima.com.br/informacoes/merc-sec-debentures/arqs/db#{formatted_date}.txt"
-file = open(url)
+url_debentures_Anbima = "https://www.anbima.com.br/informacoes/merc-sec-debentures/arqs/db#{formatted_date}.txt"
+file = open(url_debentures_Anbima)
 i = 1
 
 File.open(file).each do |row|
@@ -77,19 +79,44 @@ File.open(file).each do |row|
     puts data.rate
     puts data.price
     puts data.days_to_maturity
+  end
+  i += 1
+end
+
+end_date = Date.today
+start_date = Date.today - 1
+formatted_start_date = start_date.strftime("%Y%m%d")
+puts formatted_start_date
+formatted_end_date = end_date.strftime("%Y%m%d")
+puts formatted_end_date
+url_debentures_secondary = "http://www.debentures.com.br/exploreosnd/consultaadados/mercadosecundario/precosdenegociacao_e.asp?op_exc=False&isin=&ativo=&dt_ini=#{formatted_start_date}&dt_fim=#{formatted_end_date}"
+puts url_debentures_secondary
+
+#file = open(url_debentures_secondary)
+file = 'db/csv_repos/Debentures.com.xls'
+
+
+book =  Roo::Spreadsheet.open(file, extension: :xls)
+sheet1 = book.sheet(0)
+puts sheet1.row(1)
+i = 1
+ # can use an index or worksheet name
+sheet1.each do |row|
+  if i > 4
+    debenture = Debenture.find_by(code: row[2])
+    puts row[4]
+    unless debenture.nil?
+      data = DebentureMarketDatum.create(debenture: debenture, calendar: calendar, price_min: row[6], price_max: row[8],
+                                 negociated_quantity: row[4])
+    puts data.debenture.code
+    puts data.price_min
+    puts data.price_max
+    end
+
 
   end
   i += 1
 end
-  # encoded_file = File.read(file).force_encoding("ISO-8859-1")
-
-  # File.open(encoded_file).each do |row|
-  #   puts row.split("@")
-  # end
-
-    # puts row
-    # i += 1
-
 
 # def write_daily_data_fund
 
