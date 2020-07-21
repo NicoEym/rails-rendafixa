@@ -1,0 +1,10 @@
+<br>
+  <div class="container">
+    <% unless @chart_prices.nil? %>
+      <div class="chart-container">
+        <%= line_chart @chart_prices, colors: ["#CFB07B", "#1E2025", "#89449C"], thousands: ",", title: "Preço", label: "Value", min: 75 %>
+      </div>
+    <% end %>
+  </div>
+<br>
+
