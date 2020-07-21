@@ -12,6 +12,7 @@ require "csv"
 require 'roo-xls'
 
 DebentureMarketDatum.delete_all
+
 # Debenture.delete_all
 # Issuer.delete_all
 # Sector.delete_all
@@ -76,12 +77,15 @@ File.open(file).each do |row|
     data = DebentureMarketDatum.create(debenture: debenture, calendar: calendar, rate: debenture_array[6], price: debenture_array[10],
                                 days_to_maturity: debenture_array[12])
     puts debenture.code
+    puts data.calendar.day
     puts data.rate
     puts data.price
     puts data.days_to_maturity
   end
   i += 1
 end
+
+
 
 end_date = Date.today
 start_date = Date.today - 1
@@ -104,13 +108,17 @@ i = 1
 sheet1.each do |row|
   if i > 4
     debenture = Debenture.find_by(code: row[2])
-    puts row[4]
+    puts debenture.id unless debenture.nil?
+
     unless debenture.nil?
-      data = DebentureMarketDatum.create(debenture: debenture, calendar: calendar, price_min: row[6], price_max: row[8],
-                                 negociated_quantity: row[4])
-    puts data.debenture.code
-    puts data.price_min
-    puts data.price_max
+      calendar = Calendar.find_by(day: date_report)
+      puts calendar.id
+      debenture_data = DebentureMarketDatum.find_by(calendar: calendar, debenture: debenture)
+      puts debenture_data
+      unless debenture_data.nil?
+        debenture_data.update(price_min: row[6], price_max: row[8], negociated_quantity: row[4])
+        debenture_data.debenture.code
+     end
     end
 
 
