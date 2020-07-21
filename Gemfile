@@ -42,6 +42,7 @@ gem 'autoprefixer-rails'
 gem 'font-awesome-sass'
 gem 'simple_form'
 gem 'roo-xls'
+gem "chartkick"
 
 group :development, :test do
   gem 'pry-byebug'
