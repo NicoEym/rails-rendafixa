@@ -17,9 +17,12 @@ class DebenturesController < ApplicationController
     historical_array = []
 
     debenture_data = DebentureMarketDatum.where(debenture: debenture)
+    debenture_data = debenture_data.where.not(price: nil)
 
-    historical_array << { name: "Preço", data: debenture_data.map {|t| [t.calendar.day.strftime("%Y-%m"), t.price.round(2)] } }
-    historical_array << { name: "Preço minimo", data: debenture_data.map {|t| [t.calendar.day.strftime("%Y-%m"), t.price_min.round(2)] } }
-    historical_array << { name: "Preço maximo", data: debenture_data.map {|t| [t.calendar.day.strftime("%Y-%m"), t.price_max.round(2)] } }
+
+      historical_array << { name: "Preço", data: debenture_data.map {|t| [t.calendar.day.strftime("%Y-%m"), t.price] } }
+      historical_array << { name: "Preço minimo", data: debenture_data.map {|t| [t.calendar.day.strftime("%Y-%m"), t.price_min] } }
+      historical_array << { name: "Preço maximo", data: debenture_data.map {|t| [t.calendar.day.strftime("%Y-%m"), t.price_max] } }
+
   end
 end
