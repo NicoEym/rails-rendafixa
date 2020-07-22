@@ -1,6 +1,6 @@
 class ApplicationController < ActionController::Base
 
-    def get_last_date(debenture)
+  def get_last_date(debenture)
     # the goal is the find the most recent date for which the fund has data
     # we choose the last five days in the data base
     today = Date.today
@@ -17,5 +17,10 @@ class ApplicationController < ActionController::Base
       # when the number of DailyDatum for that date == the number of funds then we return the date
       return last_date if !data.nil?
     end
+  end
+
+  def get_dates
+    # we get all the date rank from the most recent to the oldest in an array
+    dates = Calendar.order('day desc')
   end
 end
