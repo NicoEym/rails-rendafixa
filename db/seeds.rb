@@ -11,7 +11,7 @@ require "open-uri"
 require "csv"
 require 'roo-xls'
 
-DebentureMarketDatum.delete_all
+# DebentureMarketDatum.delete_all
 
 # Debenture.delete_all
 # Issuer.delete_all
