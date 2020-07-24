@@ -10,13 +10,28 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_24_184356) do
+ActiveRecord::Schema.define(version: 2020_07_24_211109) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "calendars", force: :cascade do |t|
     t.date "day"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  create_table "curve_terms", force: :cascade do |t|
+    t.bigint "curve_id"
+    t.bigint "calendar_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["calendar_id"], name: "index_curve_terms_on_calendar_id"
+    t.index ["curve_id"], name: "index_curve_terms_on_curve_id"
+  end
+
+  create_table "curves", force: :cascade do |t|
+    t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
@@ -81,6 +96,8 @@ ActiveRecord::Schema.define(version: 2020_07_24_184356) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "curve_terms", "calendars"
+  add_foreign_key "curve_terms", "curves", column: "curve_id"
   add_foreign_key "debenture_market_data", "calendars"
   add_foreign_key "debenture_market_data", "debentures"
   add_foreign_key "debentures", "issuers"

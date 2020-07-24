@@ -10,6 +10,7 @@ require "date"
 require "open-uri"
 require "csv"
 require 'roo-xls'
+require 'nokogiri'
 
 # DebentureMarketDatum.delete_all
 
@@ -59,36 +60,39 @@ end
 # end
 
 
-date_report = Date.today - 1
-calendar = Calendar.create(day: date_report)
-formatted_date = date_report.strftime("%y%m%d")
+# date_report = Date.today - 1
+# calendar = Calendar.create(day: date_report)
+# formatted_date = date_report.strftime("%y%m%d")
 
-url_debentures_Anbima = "https://www.anbima.com.br/informacoes/merc-sec-debentures/arqs/db#{formatted_date}.txt"
-file = open(url_debentures_Anbima)
-i = 1
+# url_debentures_Anbima = "https://www.anbima.com.br/informacoes/merc-sec-debentures/arqs/db#{formatted_date}.txt"
+# file = open(url_debentures_Anbima)
+# i = 1
 
-File.open(file).each do |row|
-  encoded_row = row.force_encoding("ISO-8859-1")
-  debenture_array = encoded_row.split("@")
-  if i > 3
-    debenture = Debenture.find_by(code: debenture_array[0])
-    debenture = Debenture.create(code: debenture_array[0], maturity_date: debenture_array[2] ) if debenture.nil?
+# File.open(file).each do |row|
+#   encoded_row = row.force_encoding("ISO-8859-1")
+#   debenture_array = encoded_row.split("@")
+#   if i > 3
+#     debenture = Debenture.find_by(code: debenture_array[0])
+#     debenture = Debenture.create(code: debenture_array[0], maturity_date: debenture_array[2] ) if debenture.nil?
 
-    data = DebentureMarketDatum.create(debenture: debenture, calendar: calendar, rate: debenture_array[6], price: debenture_array[10],
-                                 days_to_maturity: debenture_array[12])
+#     data = DebentureMarketDatum.create(debenture: debenture, calendar: calendar, rate: debenture_array[6], price: debenture_array[10],
+#                                  days_to_maturity: debenture_array[12])
 
-    data.update(bid_rate: debenture_array[4], ask_rate: debenture_array[5]) if debenture_array[4] != "--" && debenture_array[5] != "--"
-    puts debenture.code
-    puts data.calendar.day
-    puts data.rate
-    puts data.price
-    puts data.days_to_maturity
-  end
-  i += 1
+#     data.update(bid_rate: debenture_array[4], ask_rate: debenture_array[5]) if debenture_array[4] != "--" && debenture_array[5] != "--"
+#     puts debenture.code
+#     puts data.calendar.day
+#     puts data.rate
+#     puts data.price
+#     puts data.days_to_maturity
+#   end
+#   i += 1
+# end
+
+url_PRE = "http://www2.bmf.com.br/pages/portal/bmfbovespa/lumis/lum-taxas-referenciais-bmf-ptBR.asp"
+doc = Nokogiri::HTML(open(url_PRE).read)
+doc.xpath("//td").each do |element|
+  puts element.text.strip
 end
-
-
-
 # end_date = Date.today
 # start_date = Date.today - 1
 # formatted_start_date = start_date.strftime("%Y%m%d")
