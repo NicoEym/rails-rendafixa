@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_17_195414) do
+ActiveRecord::Schema.define(version: 2020_07_24_184356) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -33,6 +33,8 @@ ActiveRecord::Schema.define(version: 2020_07_17_195414) do
     t.float "price_min"
     t.float "price_max"
     t.integer "negociated_quantity"
+    t.float "bid_rate"
+    t.float "ask_rate"
     t.index ["calendar_id"], name: "index_debenture_market_data_on_calendar_id"
     t.index ["debenture_id"], name: "index_debenture_market_data_on_debenture_id"
   end

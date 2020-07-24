@@ -75,7 +75,9 @@ File.open(file).each do |row|
     debenture = Debenture.create(code: debenture_array[0], maturity_date: debenture_array[2] ) if debenture.nil?
 
     data = DebentureMarketDatum.create(debenture: debenture, calendar: calendar, rate: debenture_array[6], price: debenture_array[10],
-                                days_to_maturity: debenture_array[12])
+                                 days_to_maturity: debenture_array[12])
+
+    data.update(bid_rate: debenture_array[4], ask_rate: debenture_array[5]) if debenture_array[4] != "--" && debenture_array[5] != "--"
     puts debenture.code
     puts data.calendar.day
     puts data.rate
@@ -87,44 +89,48 @@ end
 
 
 
-end_date = Date.today
-start_date = Date.today - 1
-formatted_start_date = start_date.strftime("%Y%m%d")
-puts formatted_start_date
-formatted_end_date = end_date.strftime("%Y%m%d")
-puts formatted_end_date
-url_debentures_secondary = "http://www.debentures.com.br/exploreosnd/consultaadados/mercadosecundario/precosdenegociacao_e.asp?op_exc=False&isin=&ativo=&dt_ini=#{formatted_start_date}&dt_fim=#{formatted_end_date}"
-puts url_debentures_secondary
+# end_date = Date.today
+# start_date = Date.today - 1
+# formatted_start_date = start_date.strftime("%Y%m%d")
+# puts formatted_start_date
+# formatted_end_date = end_date.strftime("%Y%m%d")
+# puts formatted_end_date
+# url_debentures_secondary = "http://www.debentures.com.br/exploreosnd/consultaadados/mercadosecundario/precosdenegociacao_e.asp?op_exc=False&isin=&ativo=&dt_ini=#{formatted_start_date}&dt_fim=#{formatted_end_date}"
+# puts url_debentures_secondary
 
-#file = open(url_debentures_secondary)
-file = 'db/csv_repos/Debentures.com.xls'
-
-
-book =  Roo::Spreadsheet.open(file, extension: :xls)
-sheet1 = book.sheet(0)
-puts sheet1.row(1)
-i = 1
- # can use an index or worksheet name
-sheet1.each do |row|
-  if i > 4
-    debenture = Debenture.find_by(code: row[2])
-    puts debenture.id unless debenture.nil?
-
-    unless debenture.nil?
-      calendar = Calendar.find_by(day: date_report)
-      puts calendar.id
-      debenture_data = DebentureMarketDatum.find_by(calendar: calendar, debenture: debenture)
-      puts debenture_data
-      unless debenture_data.nil?
-        debenture_data.update(price_min: row[6], price_max: row[8], negociated_quantity: row[4])
-        debenture_data.debenture.code
-     end
-    end
+# # file = open(url_debentures_secondary)
 
 
-  end
-  i += 1
-end
+# download = open(url_debentures_secondary)
+# IO.copy_stream(download, 'db/csv_repos/Debentures.com.xls')
+
+# file = 'db/csv_repos/Debentures.com.xls'
+
+# book =  Roo::Spreadsheet.open(file, extension: :xls)
+# sheet1 = book.sheet(0)
+# puts sheet1.row(1)
+# i = 1
+#  # can use an index or worksheet name
+# sheet1.each do |row|
+#   if i > 4
+#     debenture = Debenture.find_by(code: row[2])
+#     puts debenture.id unless debenture.nil?
+
+#     unless debenture.nil?
+#       calendar = Calendar.find_by(day: date_report)
+#       puts calendar.id
+#       debenture_data = DebentureMarketDatum.find_by(calendar: calendar, debenture: debenture)
+#       puts debenture_data
+#       unless debenture_data.nil?
+#         debenture_data.update(price_min: row[6], price_max: row[8], negociated_quantity: row[4])
+#         debenture_data.debenture.code
+#      end
+#     end
+
+
+#   end
+#   i += 1
+# end
 
 # def write_daily_data_fund
 
