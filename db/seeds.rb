@@ -90,9 +90,27 @@ end
 
 url_PRE = "http://www2.bmf.com.br/pages/portal/bmfbovespa/lumis/lum-taxas-referenciais-bmf-ptBR.asp"
 doc = Nokogiri::HTML(open(url_PRE).read)
+curve_array = []
+day_array = []
 doc.xpath("//td").each do |element|
-  puts element.text.strip
+
+
+  if day_array.size < 3
+    day_array << element.text.strip
+  elsif day_array.size == 3
+    day_array << element.text.strip
+    curve_array << day_array
+    day_array = []
+  end
+
 end
+
+
+
+curve_array.each do |day_array|
+
+end
+
 # end_date = Date.today
 # start_date = Date.today - 1
 # formatted_start_date = start_date.strftime("%Y%m%d")
