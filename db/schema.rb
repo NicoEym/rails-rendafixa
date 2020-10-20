@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_07_24_211109) do
+ActiveRecord::Schema.define(version: 2020_10_20_205709) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -26,6 +26,8 @@ ActiveRecord::Schema.define(version: 2020_07_24_211109) do
     t.bigint "calendar_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.float "value"
+    t.integer "day"
     t.index ["calendar_id"], name: "index_curve_terms_on_calendar_id"
     t.index ["curve_id"], name: "index_curve_terms_on_curve_id"
   end
