@@ -87,7 +87,9 @@ end
 #   end
 #   i += 1
 # end
-
+curve = Curve.create(name: "PRE")
+date_report = Date.today - 1
+calendar = Calendar.create(day: date_report)
 url_PRE = "http://www2.bmf.com.br/pages/portal/bmfbovespa/lumis/lum-taxas-referenciais-bmf-ptBR.asp"
 doc = Nokogiri::HTML(open(url_PRE).read)
 curve_array = []
@@ -98,9 +100,9 @@ doc.xpath("//td").each do |element|
   if day_array.size < 3
     day_array << element.text.strip
   elsif day_array.size == 3
-    day_array << element.text.strip
     curve_array << day_array
     day_array = []
+    day_array << element.text.strip
   end
 
 end
@@ -108,7 +110,8 @@ end
 
 
 curve_array.each do |day_array|
-
+ puts "Day #{day_array[0]}  - rate #{day_array[2]}"
+ CurveTerm.create(curve: curve, calendar: calendar ,day: day_array[0], value: day_array[2])
 end
 
 # end_date = Date.today
