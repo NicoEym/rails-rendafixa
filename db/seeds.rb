@@ -30,6 +30,9 @@ def get_date(date)
   date = Date.new(year, month, day)
 end
 
+######################GET THE CSV LIST of DEBENTURES ##############
+
+
 # if Debenture.all.count == 0
 #   CSV.foreach(source_file, csv_options) do |row|
 #     code = row['Codigo']
@@ -59,61 +62,67 @@ end
 #   end
 # end
 
+##################GET DEBENTURES DAILY DATA ###########################
 
-# date_report = Date.today - 1
-# calendar = Calendar.create(day: date_report)
-# formatted_date = date_report.strftime("%y%m%d")
-
-# url_debentures_Anbima = "https://www.anbima.com.br/informacoes/merc-sec-debentures/arqs/db#{formatted_date}.txt"
-# file = open(url_debentures_Anbima)
-# i = 1
-
-# File.open(file).each do |row|
-#   encoded_row = row.force_encoding("ISO-8859-1")
-#   debenture_array = encoded_row.split("@")
-#   if i > 3
-#     debenture = Debenture.find_by(code: debenture_array[0])
-#     debenture = Debenture.create(code: debenture_array[0], maturity_date: debenture_array[2] ) if debenture.nil?
-
-#     data = DebentureMarketDatum.create(debenture: debenture, calendar: calendar, rate: debenture_array[6], price: debenture_array[10],
-#                                  days_to_maturity: debenture_array[12])
-
-#     data.update(bid_rate: debenture_array[4], ask_rate: debenture_array[5]) if debenture_array[4] != "--" && debenture_array[5] != "--"
-#     puts debenture.code
-#     puts data.calendar.day
-#     puts data.rate
-#     puts data.price
-#     puts data.days_to_maturity
-#   end
-#   i += 1
-# end
-curve = Curve.create(name: "PRE")
 date_report = Date.today - 1
 calendar = Calendar.create(day: date_report)
-url_PRE = "http://www2.bmf.com.br/pages/portal/bmfbovespa/lumis/lum-taxas-referenciais-bmf-ptBR.asp"
-doc = Nokogiri::HTML(open(url_PRE).read)
-curve_array = []
-day_array = []
-doc.xpath("//td").each do |element|
+formatted_date = date_report.strftime("%y%m%d")
 
+url_debentures_Anbima = "https://www.anbima.com.br/informacoes/merc-sec-debentures/arqs/db#{formatted_date}.txt"
+file = open(url_debentures_Anbima)
+i = 1
 
-  if day_array.size < 3
-    day_array << element.text.strip
-  elsif day_array.size == 3
-    curve_array << day_array
-    day_array = []
-    day_array << element.text.strip
+File.open(file).each do |row|
+  encoded_row = row.force_encoding("ISO-8859-1")
+  debenture_array = encoded_row.split("@")
+  if i > 3
+    debenture = Debenture.find_by(code: debenture_array[0])
+    debenture = Debenture.create(code: debenture_array[0], maturity_date: debenture_array[2] ) if debenture.nil?
+
+    data = DebentureMarketDatum.create(debenture: debenture, calendar: calendar, rate: debenture_array[6], price: debenture_array[10],
+                                 days_to_maturity: debenture_array[12])
+
+    data.update(bid_rate: debenture_array[4], ask_rate: debenture_array[5]) if debenture_array[4] != "--" && debenture_array[5] != "--"
+    data.update(credit_spread: debenture_array[6]) if debenture_array[3][0..3] == "DI +"
+    puts debenture.code
+    puts data.calendar.day
+    puts data.rate
+    puts data.price
+    puts data.days_to_maturity
   end
-
+  i += 1
 end
 
+###########################################################
 
 
-curve_array.each do |day_array|
- puts "Day #{day_array[0]}  - rate #{day_array[2]}"
- CurveTerm.create(curve: curve, calendar: calendar ,day: day_array[0], value: day_array[2])
-end
+####################GET CURVE########################################
+# curve = Curve.create(name: "PRE")
+# date_report = Date.today - 1
+# calendar = Calendar.create(day: date_report)
+# url_PRE = "http://www2.bmf.com.br/pages/portal/bmfbovespa/lumis/lum-taxas-referenciais-bmf-ptBR.asp"
+# doc = Nokogiri::HTML(open(url_PRE).read)
+# curve_array = []
+# day_array = []
+# doc.xpath("//td").each do |element|
 
+
+#   if day_array.size < 3
+#     day_array << element.text.strip
+#   elsif day_array.size == 3
+#     curve_array << day_array
+#     day_array = []
+#     day_array << element.text.strip
+#   end
+
+# end
+
+# curve_array.each do |day_array|
+#  puts "Day #{day_array[0]}  - rate #{day_array[2]}"
+#  CurveTerm.create(curve: curve, calendar: calendar ,day: day_array[0], value: day_array[2])
+# end
+
+############################################################################################
 # end_date = Date.today
 # start_date = Date.today - 1
 # formatted_start_date = start_date.strftime("%Y%m%d")
