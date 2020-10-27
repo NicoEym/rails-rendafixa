@@ -30,6 +30,16 @@ def get_date(date)
   date = Date.new(year, month, day)
 end
 
+
+def is_brazilian_holidays?(today)
+  2020_holidays = ["2020-11-02", "2020-11-15", "2020-12-25"]
+  2020_holidays.each do |2020_holiday|
+
+    date = get_date(2020_holiday)
+  end
+end
+
+
 ######################GET THE CSV LIST of DEBENTURES ##############
 
 
@@ -64,7 +74,8 @@ end
 
 ##################GET DEBENTURES DAILY DATA ###########################
 
-date_report = Date.today - 1
+yesterday = Date.today - 1
+date_report = (yesterday.saturday?) ? yesterday - 1 : (yesterday.sunday?) ? yesterday - 2 : yesterday
 calendar = Calendar.create(day: date_report)
 formatted_date = date_report.strftime("%y%m%d")
 
