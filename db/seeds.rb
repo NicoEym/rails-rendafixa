@@ -30,14 +30,29 @@ def get_date(date)
   date = Date.new(year, month, day)
 end
 
+def get_report_date(date)
+  puts date
+  new_date = avoid_brazilian_holidays(date)
+  puts new_date
+  new_date = avoid_weekend(new_date)
+  new_date = avoid_brazilian_holidays(new_date)
 
-def is_brazilian_holidays?(today)
-  2020_holidays = ["2020-11-02", "2020-11-15", "2020-12-25"]
-  2020_holidays.each do |2020_holiday|
-
-    date = get_date(2020_holiday)
-  end
 end
+
+def avoid_brazilian_holidays(date)
+  holidays_string = ["2020-11-02", "2020-11-15", "2020-12-25", "2020-10-30"]
+  holidays_date =  []
+  holidays_string.each do |holiday|
+    holidays_date << get_date(holiday)
+  end
+
+  date.in?(holidays_date) ? date - 1 : date
+end
+
+def avoid_weekend(date)
+  (date.saturday?) ? date - 1 : (date.sunday?) ? date - 2 : date
+end
+
 
 
 ######################GET THE CSV LIST of DEBENTURES ##############
@@ -74,8 +89,9 @@ end
 
 ##################GET DEBENTURES DAILY DATA ###########################
 
-yesterday = Date.today - 1
-date_report = (yesterday.saturday?) ? yesterday - 1 : (yesterday.sunday?) ? yesterday - 2 : yesterday
+yesterday = Date.today + 4
+date_report = get_report_date(yesterday)
+puts date_report
 calendar = Calendar.create(day: date_report)
 formatted_date = date_report.strftime("%y%m%d")
 
@@ -108,74 +124,73 @@ end
 
 
 ####################GET CURVE########################################
-# curve = Curve.create(name: "PRE")
-# date_report = Date.today - 1
-# calendar = Calendar.create(day: date_report)
-# url_PRE = "http://www2.bmf.com.br/pages/portal/bmfbovespa/lumis/lum-taxas-referenciais-bmf-ptBR.asp"
-# doc = Nokogiri::HTML(open(url_PRE).read)
-# curve_array = []
-# day_array = []
-# doc.xpath("//td").each do |element|
+curve = Curve.create(name: "PRE")
+
+url_PRE = "http://www2.bmf.com.br/pages/portal/bmfbovespa/lumis/lum-taxas-referenciais-bmf-ptBR.asp"
+doc = Nokogiri::HTML(open(url_PRE).read)
+curve_array = []
+day_array = []
+doc.xpath("//td").each do |element|
 
 
-#   if day_array.size < 3
-#     day_array << element.text.strip
-#   elsif day_array.size == 3
-#     curve_array << day_array
-#     day_array = []
-#     day_array << element.text.strip
-#   end
+  if day_array.size < 3
+    day_array << element.text.strip
+  elsif day_array.size == 3
+    curve_array << day_array
+    day_array = []
+    day_array << element.text.strip
+  end
 
-# end
+end
 
-# curve_array.each do |day_array|
-#  puts "Day #{day_array[0]}  - rate #{day_array[2]}"
-#  CurveTerm.create(curve: curve, calendar: calendar ,day: day_array[0], value: day_array[2])
-# end
+curve_array.each do |day_array|
+ puts "Day #{day_array[0]}  - rate #{day_array[2]}"
+ CurveTerm.create(curve: curve, calendar: calendar ,day: day_array[0], value: day_array[2])
+end
 
 ############################################################################################
-# end_date = Date.today
-# start_date = Date.today - 1
-# formatted_start_date = start_date.strftime("%Y%m%d")
-# puts formatted_start_date
-# formatted_end_date = end_date.strftime("%Y%m%d")
-# puts formatted_end_date
-# url_debentures_secondary = "http://www.debentures.com.br/exploreosnd/consultaadados/mercadosecundario/precosdenegociacao_e.asp?op_exc=False&isin=&ativo=&dt_ini=#{formatted_start_date}&dt_fim=#{formatted_end_date}"
-# puts url_debentures_secondary
+end_date = get_report_date(Date.today)
+start_date = get_report_date(Date.today - 1)
+formatted_start_date = start_date.strftime("%Y%m%d")
+puts formatted_start_date
+formatted_end_date = end_date.strftime("%Y%m%d")
+puts formatted_end_date
+url_debentures_secondary = "http://www.debentures.com.br/exploreosnd/consultaadados/mercadosecundario/precosdenegociacao_e.asp?op_exc=False&isin=&ativo=&dt_ini=#{formatted_start_date}&dt_fim=#{formatted_end_date}"
+puts url_debentures_secondary
 
-# # file = open(url_debentures_secondary)
-
-
-# download = open(url_debentures_secondary)
-# IO.copy_stream(download, 'db/csv_repos/Debentures.com.xls')
-
-# file = 'db/csv_repos/Debentures.com.xls'
-
-# book =  Roo::Spreadsheet.open(file, extension: :xls)
-# sheet1 = book.sheet(0)
-# puts sheet1.row(1)
-# i = 1
-#  # can use an index or worksheet name
-# sheet1.each do |row|
-#   if i > 4
-#     debenture = Debenture.find_by(code: row[2])
-#     puts debenture.id unless debenture.nil?
-
-#     unless debenture.nil?
-#       calendar = Calendar.find_by(day: date_report)
-#       puts calendar.id
-#       debenture_data = DebentureMarketDatum.find_by(calendar: calendar, debenture: debenture)
-#       puts debenture_data
-#       unless debenture_data.nil?
-#         debenture_data.update(price_min: row[6], price_max: row[8], negociated_quantity: row[4])
-#         debenture_data.debenture.code
-#      end
-#     end
+# file = open(url_debentures_secondary)
 
 
-#   end
-#   i += 1
-# end
+download = open(url_debentures_secondary)
+IO.copy_stream(download, 'db/csv_repos/Debentures.com.xls')
+
+file = 'db/csv_repos/Debentures.com.xls'
+
+book =  Roo::Spreadsheet.open(file, extension: :xls)
+sheet1 = book.sheet(0)
+puts sheet1.row(1)
+i = 1
+ # can use an index or worksheet name
+sheet1.each do |row|
+  if i > 4
+    debenture = Debenture.find_by(code: row[2])
+    puts debenture.id unless debenture.nil?
+
+    unless debenture.nil?
+      calendar = Calendar.find_by(day: date_report)
+      puts calendar.id
+      debenture_data = DebentureMarketDatum.find_by(calendar: calendar, debenture: debenture)
+      puts debenture_data
+      unless debenture_data.nil?
+        debenture_data.update(price_min: row[6], price_max: row[8], negociated_quantity: row[4])
+        debenture_data.debenture.code
+     end
+    end
+
+
+  end
+  i += 1
+end
 
 # def write_daily_data_fund
 
