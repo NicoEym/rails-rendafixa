@@ -88,108 +88,112 @@ end
 # end
 
 ##################GET DEBENTURES DAILY DATA ###########################
+def download_debentures_data(date_report)
 
-yesterday = Date.today + 4
-date_report = get_report_date(yesterday)
-puts date_report
-calendar = Calendar.create(day: date_report)
-formatted_date = date_report.strftime("%y%m%d")
+  calendar = Calendar.create(day: date_report)
+  formatted_date = date_report.strftime("%y%m%d")
 
-url_debentures_Anbima = "https://www.anbima.com.br/informacoes/merc-sec-debentures/arqs/db#{formatted_date}.txt"
-file = open(url_debentures_Anbima)
-i = 1
+  url_debentures_Anbima = "https://www.anbima.com.br/informacoes/merc-sec-debentures/arqs/db#{formatted_date}.txt"
+  file = open(url_debentures_Anbima)
+  i = 1
 
-File.open(file).each do |row|
-  encoded_row = row.force_encoding("ISO-8859-1")
-  debenture_array = encoded_row.split("@")
-  if i > 3
-    debenture = Debenture.find_by(code: debenture_array[0])
-    debenture = Debenture.create(code: debenture_array[0], maturity_date: debenture_array[2] ) if debenture.nil?
+  File.open(file).each do |row|
+    encoded_row = row.force_encoding("ISO-8859-1")
+    debenture_array = encoded_row.split("@")
+    if i > 3
+      debenture = Debenture.find_by(code: debenture_array[0])
+      debenture = Debenture.create(code: debenture_array[0], maturity_date: debenture_array[2] ) if debenture.nil?
 
-    data = DebentureMarketDatum.create(debenture: debenture, calendar: calendar, rate: debenture_array[6], price: debenture_array[10],
-                                 days_to_maturity: debenture_array[12])
+      data = DebentureMarketDatum.create(debenture: debenture, calendar: calendar, rate: debenture_array[6], price: debenture_array[10],
+                                   days_to_maturity: debenture_array[12])
 
-    data.update(bid_rate: debenture_array[4], ask_rate: debenture_array[5]) if debenture_array[4] != "--" && debenture_array[5] != "--"
-    data.update(credit_spread: debenture_array[6]) if debenture_array[3][0..3] == "DI +"
-    puts debenture.code
-    puts data.calendar.day
-    puts data.rate
-    puts data.price
-    puts data.days_to_maturity
+      data.update(bid_rate: debenture_array[4], ask_rate: debenture_array[5]) if debenture_array[4] != "--" && debenture_array[5] != "--"
+      data.update(credit_spread: debenture_array[6]) if debenture_array[3][0..3] == "DI +"
+      puts debenture.code
+      puts data.calendar.day
+      puts data.rate
+      puts data.price
+      puts data.days_to_maturity
+    end
+    i += 1
   end
-  i += 1
 end
-
 ###########################################################
 
 
 ####################GET CURVE########################################
-curve = Curve.create(name: "PRE")
 
-url_PRE = "http://www2.bmf.com.br/pages/portal/bmfbovespa/lumis/lum-taxas-referenciais-bmf-ptBR.asp"
-doc = Nokogiri::HTML(open(url_PRE).read)
-curve_array = []
-day_array = []
-doc.xpath("//td").each do |element|
+def download_curve_PRE(date_report, curve)
+  calendar = Calendar.find_by(day: date_report)
 
+  url_PRE = "http://www2.bmf.com.br/pages/portal/bmfbovespa/lumis/lum-taxas-referenciais-bmf-ptBR.asp"
+  doc = Nokogiri::HTML(open(url_PRE).read)
+  curve_array = []
+  day_array = []
 
-  if day_array.size < 3
-    day_array << element.text.strip
-  elsif day_array.size == 3
-    curve_array << day_array
-    day_array = []
-    day_array << element.text.strip
+  doc.xpath("//td").each do |element|
+
+    if day_array.size < 3
+      day_array << element.text.strip
+    elsif day_array.size == 3
+      curve_array << day_array
+      day_array = []
+      day_array << element.text.strip
+    end
+
   end
 
-end
+  curve_array.each do |day_array|
+   puts "Day #{day_array[0]}  - rate #{day_array[2]}"
+   CurveTerm.create(curve: curve, calendar: calendar, day: day_array[0], value: day_array[2])
+  end
 
-curve_array.each do |day_array|
- puts "Day #{day_array[0]}  - rate #{day_array[2]}"
- CurveTerm.create(curve: curve, calendar: calendar ,day: day_array[0], value: day_array[2])
 end
 
 ############################################################################################
-end_date = get_report_date(Date.today)
-start_date = get_report_date(Date.today - 1)
-formatted_start_date = start_date.strftime("%Y%m%d")
-puts formatted_start_date
-formatted_end_date = end_date.strftime("%Y%m%d")
-puts formatted_end_date
-url_debentures_secondary = "http://www.debentures.com.br/exploreosnd/consultaadados/mercadosecundario/precosdenegociacao_e.asp?op_exc=False&isin=&ativo=&dt_ini=#{formatted_start_date}&dt_fim=#{formatted_end_date}"
-puts url_debentures_secondary
 
-# file = open(url_debentures_secondary)
+def download_debentures_secondary_market_data(start_date, end_date)
+
+  formatted_start_date = start_date.strftime("%Y%m%d")
+  puts formatted_start_date
+  formatted_end_date = end_date.strftime("%Y%m%d")
+  puts formatted_end_date
+  url_debentures_secondary = "http://www.debentures.com.br/exploreosnd/consultaadados/mercadosecundario/precosdenegociacao_e.asp?op_exc=False&isin=&ativo=&dt_ini=#{formatted_start_date}&dt_fim=#{formatted_end_date}"
+  puts url_debentures_secondary
+
+  # file = open(url_debentures_secondary)
 
 
-download = open(url_debentures_secondary)
-IO.copy_stream(download, 'db/csv_repos/Debentures.com.xls')
+  download = open(url_debentures_secondary)
+  IO.copy_stream(download, 'db/csv_repos/Debentures.com.xls')
 
-file = 'db/csv_repos/Debentures.com.xls'
+  file = 'db/csv_repos/Debentures.com.xls'
 
-book =  Roo::Spreadsheet.open(file, extension: :xls)
-sheet1 = book.sheet(0)
-puts sheet1.row(1)
-i = 1
- # can use an index or worksheet name
-sheet1.each do |row|
-  if i > 4
-    debenture = Debenture.find_by(code: row[2])
-    puts debenture.id unless debenture.nil?
+  book =  Roo::Spreadsheet.open(file, extension: :xls)
+  sheet1 = book.sheet(0)
+  puts sheet1.row(1)
+  i = 1
+   # can use an index or worksheet name
+  sheet1.each do |row|
+    if i > 4
+      debenture = Debenture.find_by(code: row[2])
+      puts debenture.id unless debenture.nil?
 
-    unless debenture.nil?
-      calendar = Calendar.find_by(day: date_report)
-      puts calendar.id
-      debenture_data = DebentureMarketDatum.find_by(calendar: calendar, debenture: debenture)
-      puts debenture_data
-      unless debenture_data.nil?
-        debenture_data.update(price_min: row[6], price_max: row[8], negociated_quantity: row[4])
-        debenture_data.debenture.code
-     end
+      unless debenture.nil?
+        calendar = Calendar.find_by(day: date_report)
+        puts calendar.id
+        debenture_data = DebentureMarketDatum.find_by(calendar: calendar, debenture: debenture)
+        puts debenture_data
+        unless debenture_data.nil?
+          debenture_data.update(price_min: row[6], price_max: row[8], negociated_quantity: row[4])
+          debenture_data.debenture.code
+       end
+      end
+
+
     end
-
-
+    i += 1
   end
-  i += 1
 end
 
 # def write_daily_data_fund
@@ -249,3 +253,20 @@ end
 #     end
 #   end
 # end
+
+
+
+yesterday = Date.today - 1
+date_report = get_report_date(yesterday)
+puts date_report
+
+end_date = get_report_date(Date.today - 1)
+start_date = get_report_date(Date.today - 2)
+
+
+download_debentures_data(date_report)
+# download_debentures_secondary_market_data(start_date, end_date)
+
+curve_PRE = Curve.create(name: "PRE") if Curve.find_by(name: "PRE").nil?
+
+download_curve_PRE(date_report, curve_PRE)
