@@ -109,6 +109,8 @@ def download_debentures_data(date_report)
 
       data.update(bid_rate: debenture_array[4], ask_rate: debenture_array[5]) if debenture_array[4] != "--" && debenture_array[5] != "--"
       data.update(credit_spread: debenture_array[6]) if debenture_array[3][0..3] == "DI +"
+      convert_rate_percent_CDI_to_CDI_Spread(debenture_array[6]) if debenture_array[3][-5..-1] == "do DI"
+      convert_rate_IPCA_Spread_to_CDI_Spread(debenture_array[6]) if debenture_array[3][0..5] == "IPCA +"
       puts debenture.code
       puts data.calendar.day
       puts data.rate
@@ -194,6 +196,37 @@ def download_debentures_secondary_market_data(start_date, end_date)
     end
     i += 1
   end
+end
+
+
+def convert_rate_percent_CDI_to_CDI_Spread(spread)
+
+  rate_1 = PRE_1_day * Entry_rate
+  rate_2 = PRE_1_day
+
+  final_Rate = (( 1 +  rate_1) / (1 + rate_2)) ^(252) - 1
+end
+
+def convert_rate_IPCA_Spread_to_CDI_spread(spread)
+
+  rate_1 = (1 + Entry_rate) * (1 + IPCA_1_day)
+  rate_2 = PRE_1_day
+
+  final_Rate = (( 1 +  rate_1) / (1 + rate_2)) ^(252) - 1
+end
+
+
+def calculate_daily_PRE
+
+
+
+end
+
+
+def calculate_daily_IPCA
+
+
+
 end
 
 # def write_daily_data_fund
