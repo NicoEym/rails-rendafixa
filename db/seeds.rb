@@ -31,9 +31,9 @@ def get_date(date)
 end
 
 def get_report_date(date)
-  puts date
+
   new_date = avoid_brazilian_holidays(date)
-  puts new_date
+
   new_date = avoid_weekend(new_date)
   new_date = avoid_brazilian_holidays(new_date)
 
@@ -165,13 +165,12 @@ def download_debentures_secondary_market_data(start_date, end_date)
 
   # file = open(url_debentures_secondary)
 
-
   download = open(url_debentures_secondary)
   IO.copy_stream(download, 'db/csv_repos/Debentures.com.xls')
 
   file = 'db/csv_repos/Debentures.com.xls'
 
-  book =  Roo::Spreadsheet.open(file, extension: :xls)
+  book = Roo::Spreadsheet.open(file, extension: :xls)
   sheet1 = book.sheet(0)
   puts sheet1.row(1)
   i = 1
@@ -229,77 +228,21 @@ def calculate_daily_IPCA
 
 end
 
-# def write_daily_data_fund
-
-
-#   urls.each do |url|
-
-#     download = open(url)
-#     csv = CSV.parse(download, encoding:'utf-8',:headers=>true)
-
-#     csv.each do |row|
-
-#       codigo = row['Ativo'][0,6].to_i
-#       fund = Fund.find_by(codigo_economatica: codigo)
-#       puts fund
-
-#       date = get_date(row['Date'])
-#       puts date.day
-
-#       datas = DailyDatum.find_by(fund: fund, calendar: date)
-
-#       puts row['Spread Bench daily return']
-#       puts row['Spread Bench weekly return']
-#       puts row['Spread Bench monthly return']
-#       puts row['Spread Bench quarterly return']
-#       puts row['Spread Bench annual return']
-
-#       if datas.nil?
-#         puts "nil"
-#         DailyDatum.create(aum: row['PL'], share_price:row['Cota'], return_daily_value: row['Daily return'],
-#                           return_weekly_value: row['Weekly return'], return_monthly_value: row['Monthly return'],
-#                           return_quarterly_value: row['Quarterly return'], return_annual_value: row['Yearly return'],
-#                           return_over_benchmark_daily_value: row['Spread Bench daily return'], return_over_benchmark_weekly_value: row['Spread Bench weekly return'],
-#                           return_over_benchmark_monthly_value: row['Spread Bench monthly return'], return_over_benchmark_quarterly_value: row['Spread Bench quarterly return'],
-#                           return_over_benchmark_annual_value: row['Spread Bench annual return'], volatility: row['Vol EWMA 97%'],
-#                           sharpe_ratio: row["Sharpe ratio"], tracking_error: row['Tracking error'],
-#                           application_weekly_net_value: row['Weekly Net Captation'],
-#                           application_monthly_net_value: row['Monthly Net Captation'],
-#                           application_quarterly_net_value: row['Quarterly Net Captation'],
-#                           application_annual_net_value: row['Yearly Net Captation'],fund: fund, calendar: date)
-#       else
-#         puts datas.fund.name
-#         puts datas.calendar.day
-#         datas.update(aum: row['PL'], share_price:row['Cota'], return_daily_value: row['Daily return'],
-#                           return_weekly_value: row['Weekly return'], return_monthly_value: row['Monthly return'],
-#                           return_quarterly_value: row['Quarterly return'], return_annual_value: row['Yearly return'],
-#                           return_over_benchmark_daily_value: row['Spread Bench daily return'], return_over_benchmark_weekly_value: row['Spread Bench weekly return'],
-#                           return_over_benchmark_monthly_value: row['Spread Bench monthly return'], return_over_benchmark_quarterly_value: row['Spread Bench quarterly return'],
-#                           return_over_benchmark_annual_value: row['Spread Bench annual return'], volatility: row['Vol EWMA 97%'],
-#                           sharpe_ratio: row["Sharpe ratio"], tracking_error: row['Tracking error'],
-#                           application_weekly_net_value: row['Weekly Net Captation'],
-#                           application_monthly_net_value: row['Monthly Net Captation'],
-#                           application_quarterly_net_value: row['Quarterly Net Captation'],
-#                           application_annual_net_value: row['Yearly Net Captation'],fund: fund, calendar: date)
-#       end
-
-#     end
-#   end
-# end
-
 
 
 yesterday = Date.today - 1
 date_report = get_report_date(yesterday)
-puts date_report
+puts "Report date is #{date_report}"
 
 end_date = get_report_date(Date.today - 1)
+puts "End of period date is #{end_date}"
+
 start_date = get_report_date(Date.today - 2)
+puts "Start of period date is #{start_date}"
 
-
-download_debentures_data(date_report)
-# download_debentures_secondary_market_data(start_date, end_date)
+# download_debentures_data(date_report)
+download_debentures_secondary_market_data(start_date, end_date)
 
 curve_PRE = Curve.create(name: "PRE") if Curve.find_by(name: "PRE").nil?
 
-download_curve_PRE(date_report, curve_PRE)
+# download_curve_PRE(date_report, curve_PRE)
