@@ -108,9 +108,8 @@ def download_debentures_data(date_report)
                                    days_to_maturity: debenture_array[12])
 
       data.update(bid_rate: debenture_array[4], ask_rate: debenture_array[5]) if debenture_array[4] != "--" && debenture_array[5] != "--"
-      data.update(credit_spread: debenture_array[6]) if debenture_array[3][0..3] == "DI +"
-      convert_rate_percent_CDI_to_CDI_Spread(debenture_array[6]) if debenture_array[3][-5..-1] == "do DI"
-      convert_rate_IPCA_Spread_to_CDI_Spread(debenture_array[6]) if debenture_array[3][0..5] == "IPCA +"
+      spread = write_credit_spread(debenture_array[6], debenture_array[3])
+      data.update(credit_spread: spread)
       puts debenture.code
       puts data.calendar.day
       puts data.rate
@@ -195,6 +194,14 @@ def download_debentures_secondary_market_data(start_date, end_date)
     end
     i += 1
   end
+end
+
+def write_credit_spread(spread, rate_type)
+
+  converted_spread =  spread if rate_type[0..3] == "DI +"
+  converted_spread = convert_rate_percent_CDI_to_CDI_Spread(spread) if rate_type[-5..-1] == "do DI"
+  converted_spread = convert_rate_IPCA_Spread_to_CDI_Spread(spread) if rate_type[3][0..5] == "IPCA +"
+
 end
 
 
