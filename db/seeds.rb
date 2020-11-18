@@ -199,23 +199,28 @@ end
 def write_credit_spread(spread, rate_type)
 
   converted_spread =  spread if rate_type[0..3] == "DI +"
+  pre_1_day = (1 + curva_venc(PreSWP, DtRef, , Duration + AD) / 100) ^ (1 / 252) - 1
   converted_spread = convert_rate_percent_CDI_to_CDI_Spread(spread) if rate_type[-5..-1] == "do DI"
+
+  ntnb_1_day = (1 + curva_venc(ntnb, DtRef, , Duration + AD) / 100) ^ (1 / 252) - 1
+  inf_IPCA_1_day = (1 + pre_1_day) / (1 + ntnb_1_day) - 1
+
   converted_spread = convert_rate_IPCA_Spread_to_CDI_Spread(spread) if rate_type[3][0..5] == "IPCA +"
 
 end
 
 
-def convert_rate_percent_CDI_to_CDI_Spread(spread)
+def convert_rate_percent_CDI_to_CDI_Spread(entry_rate, pre_1_day)
 
-  rate_1 = PRE_1_day * Entry_rate
+  rate_1 = PRE_1_day * entry_rate
   rate_2 = PRE_1_day
 
   final_Rate = (( 1 +  rate_1) / (1 + rate_2)) ^(252) - 1
 end
 
-def convert_rate_IPCA_Spread_to_CDI_spread(spread)
+def convert_rate_IPCA_Spread_to_CDI_spread(entry_rate, pre_1_day, ipca_1_day)
 
-  rate_1 = (1 + Entry_rate) * (1 + IPCA_1_day)
+  rate_1 = (1 + entry_rate) * (1 + ipca_1_day)
   rate_2 = PRE_1_day
 
   final_Rate = (( 1 +  rate_1) / (1 + rate_2)) ^(252) - 1
